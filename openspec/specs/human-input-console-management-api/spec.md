@@ -237,6 +237,7 @@ On CE, an authorized workspace owner or administrator MUST be able to set a Cont
 
 - **WHEN** workspace owner or admin calls `GET /console/api/workspaces/current/human-input/im-sync-runs/latest`
 - **THEN** system MUST return run metadata, `finished_at` and aggregate counts for all five result buckets
+- **AND** the response MUST expose the captured Channel revision as `channel_id` and `channel_config_version`
 - **AND** it MUST NOT return `started_by`
 
 #### Scenario: Latest sync results are requested by bucket

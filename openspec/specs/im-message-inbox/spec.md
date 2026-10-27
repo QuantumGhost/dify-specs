@@ -60,6 +60,10 @@ One `im_message_inbox` record MUST atomically preserve an internal record ID, `c
 - **WHEN** the unpublished inbox schema is created
 - **THEN** it MUST create non-null `channel_id` and ingress kind columns without a compatibility alias, nullable transition, server default or data backfill
 
+#### Scenario: Existing callback records are upgraded
+- **WHEN** a deployment renames the inbox routing column from `integration_id` to `channel_id`
+- **THEN** the migration MUST preserve each record's routing value, authenticated event facts and processing metadata
+
 ### Requirement: Deduplication MUST use only a real Provider event ID
 For a non-empty Provider event ID, the inbox MUST deduplicate by `(provider, provider_tenant_id, provider_event_id)` and MUST NOT include Channel ID or `IMEventIngressKind` in that key. When Provider event ID is absent, every authenticated delivery MUST create an independent record. Payload hash, ingress kind, event time, message reference, receive time and transport ACK envelope identifiers MUST NOT be synthesized or substituted as event IDs. Resolving a duplicate MUST preserve the existing record's Channel ID and immutable event facts rather than overwrite them with the later delivery's ingress kind or payload.
 

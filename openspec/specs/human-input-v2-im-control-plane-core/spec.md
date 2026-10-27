@@ -33,6 +33,13 @@ IM configuration, synchronization and binding decisions MUST use domain values a
 ### Requirement: Each IM Channel MUST have at most one active sync run
 The persistence contract MUST prevent concurrent triggers from creating more than one active synchronization run for the same Channel revision.
 
+Sync runs MUST persist the captured Channel revision as `channel_id` and `channel_config_version`. Sync results and reconciliation changes MUST persist their Channel reference as `channel_id`.
+
+#### Scenario: Existing synchronization history is upgraded
+- **WHEN** a deployment upgrades from the Integration-named persistence columns and indexes
+- **THEN** the migration MUST preserve existing rows and captured revision values while renaming the columns and indexes to Channel terminology
+- **AND** the positive captured-version constraint MUST apply to `channel_config_version`
+
 #### Scenario: Concurrent sync triggers
 - **WHEN** two requests trigger synchronization concurrently with no existing active run
 - **THEN** at most one new active run MUST be created
