@@ -118,7 +118,7 @@ Console Contact services 与 IM code 通过注入的 Repository 读取 current C
 
 ## Migration Plan
 
-1. 直接修改未发布 ORM 与 schema revision，并先加入 constraint tests。
+1. 直接修改未发布 ORM 与 schema revision，并先加入 constraint tests。存量 Account 的 Contact identity 回填使用独立 data migration，接在 schema DDL 与 integration-to-channel 重命名 revision 之后；回填保留已有 Contact ID，downgrade 不删除稳定 identity。
 2. 定义 Contact values 与三个 Repository protocols，实现统一 core/enterprise SQLAlchemy Contact repository 和独立 binding query adapter。
 3. 迁移 current Contact consumers 后删除旧 packages 与直接 ORM joins。
 4. 接通 Account provisioning、External lifecycle 与 Platform entry mutations。

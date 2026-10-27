@@ -11,6 +11,7 @@
 - [ ] 2.2 Add schema tests for valid `ContactSubjectType.ACCOUNT / ContactSubjectType.EXTERNAL` shapes、global `UNIQUE(account_id)`、one-to-one External profile ownership and `UNIQUE(tenant_id, normalized_email)`.
 - [x] 2.3 Retarget existing logical `contact_id` relationships, including Platform entries、IM bindings、sync and reconciliation records, to `HumanInputContactIdentity.id` without changing UUID column shapes.
 - [x] 2.4 Remove mutable profile columns and obsolete `ORGANIZATION_ACCOUNT / WORKSPACE_MEMBER` persistence values without compatibility columns、data-copy code or an additional migration revision.
+- [x] 2.5 Move existing Account Contact identity backfill into a separate Alembic data migration after schema DDL and integration-to-channel renaming; preserve existing Contact IDs and retain identities on downgrade.
 
 ## 3. Add Contact Values And Repository Ports
 
