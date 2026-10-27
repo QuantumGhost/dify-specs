@@ -89,6 +89,24 @@ HITL v2 form aggregate MUST 持有并持久化单一 authoritative `ResolvedForm
 - **THEN** v2 dynamic rendering 和 validation 使用 blocks
 - **AND** `legacy_form_content` 仅用于 v1 compatibility
 
+### Requirement: Standalone form reads refresh hosted file signatures
+Console 表单独立页返回 `resolved_form`、public Email OTP 表单独立页返回 `form_content` 时，系统 MUST 在各入口现有授权、已提交和过期校验通过后刷新内容中的 Dify 托管文件预览、下载 URL 签名。新签名 MUST 沿用现有签名方案，并从本次签发起按 `FILES_ACCESS_TIMEOUT` 计算有效期。系统 MUST 仅更新响应中的签名参数，保留文件目标、表单业务内容、下载参数和普通外部 URL；系统 MUST NOT 重新读取 workflow variables 或写回冻结 snapshot。同一响应的 `parts` 和 `legacy_form_content` 中相同文件 URL MUST 使用相同的新签名。
+
+#### Scenario: A waiting form outlives its original file signature
+- **WHEN** 文件原签名已过期，但 Console 或 public Email 表单仍可读取
+- **THEN** 返回的托管文件 URL MUST 可用于预览或下载
+- **AND** 再次读取 MUST 重新签发，文件有效期 MUST 从该次签发时间计算
+- **AND** 持久化 `ResolvedForm` MUST 保持不变
+
+#### Scenario: A form read is denied
+- **WHEN** 原有授权、已提交或过期校验拒绝读取
+- **THEN** 系统 MUST NOT 返回带新签名的表单内容
+- **AND** public 读取和 OTP 提交验证规则 MUST 保持不变
+
+#### Scenario: Content contains an untrusted file URL
+- **WHEN** 内容包含普通外部 URL、未签名文件路径或已被篡改的文件签名
+- **THEN** 系统 MUST 保留原 URL，MUST NOT 为其授予新的文件访问能力
+
 ### Requirement: IM adapters consume the resolved form contract
 IM dynamic-card contracts MUST 接收 `ResolvedForm`，adapters MUST 按 blocks 顺序进行 provider capability assessment 和 serialization。Adapters MUST 不接收 `FrozenFormDefinition`，也 MUST 不解析 `$output` tokens、selectors、raw input mappings 或独立的 default-values mapping。
 
