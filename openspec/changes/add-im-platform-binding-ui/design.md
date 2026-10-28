@@ -194,5 +194,5 @@ Channels 页面以统一卡片展示可连接与已配置项。IM provider dialo
 
 ## Open Questions
 
-- 真实 API adapter 必须映射 `/workspace/current/human-input/v2` 的 `ChannelSummary`、provider catalog、完整 credential requests 与 opaque `ConfigVersion`；当前 change 只保留 mock repository implementation。
+- 真实 API adapter 必须映射 `/workspaces/current/human-input/v2` 的 `ChannelSummary`、provider catalog、完整 credential requests 与 opaque `ConfigVersion`；当前 change 只保留 mock repository implementation。
 - Figma 中 callback、权限说明和 provider 帮助链接的最终文案，需要在实现阶段通过已授权的 Figma 访问核对。

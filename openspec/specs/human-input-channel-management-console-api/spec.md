@@ -6,17 +6,17 @@ Defines the authenticated Workspace Console v2 transport that projects independe
 ## Requirements
 ### Requirement: The Console API MUST expose one canonical Channels resource
 
-The Console API MUST expose the canonical prefix `/console/api/workspace/current/human-input/v2`。It MUST expose one configured Channel collection at `GET /channels` and one available-provider catalog at `GET /channel-providers`。Email and IM create、test and ID-addressed item routes MUST remain separated by kind。Each kind MUST expose `POST /channels/<kind>/<channel_id>/test` for testing edits against saved credentials。Every route MUST require a workspace owner or administrator。
+The Console API MUST expose the canonical prefix `/console/api/workspaces/current/human-input/v2`。It MUST expose one configured Channel collection at `GET /channels` and one available-provider catalog at `GET /channel-providers`。Email and IM create、test and ID-addressed item routes MUST remain separated by kind。Each kind MUST expose `POST /channels/<kind>/<channel_id>/test` for testing edits against saved credentials。Every route MUST require a workspace owner or administrator。
 
 #### Scenario: Configured Channels are listed
 
-- **WHEN** an authorized caller requests `GET /console/api/workspace/current/human-input/v2/channels`
+- **WHEN** an authorized caller requests `GET /console/api/workspaces/current/human-input/v2/channels`
 - **THEN** the response MUST contain every configured Email and IM Channel
 - **AND** an unconfigured provider MUST NOT appear as a `not_configured` Channel
 
 #### Scenario: Available providers are listed
 
-- **WHEN** an authorized caller requests `GET /console/api/workspace/current/human-input/v2/channel-providers`
+- **WHEN** an authorized caller requests `GET /console/api/workspaces/current/human-input/v2/channel-providers`
 - **THEN** the response MUST contain `email_providers` and `im_providers`
 - **AND** each entry MUST contain only `provider` and `connection_mode`
 - **AND** this change MUST return only `custom_app` as `connection_mode`

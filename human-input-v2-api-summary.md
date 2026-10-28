@@ -49,29 +49,29 @@ Contact 上位概念保持如下：
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| `GET` | `/console/api/workspace/current/human-input/v2/contacts` | owner/admin 分页浏览当前 workspace Contact，并按 workspace、platform 或 external 类型筛选。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/contacts/<uuid:contact_id>` | owner/admin 读取一个当前 workspace 中可用的完整 Contact projection。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/contacts/batch` | owner/admin 按 contact ID 批量读取 Contact summary；workflow editor 不使用该接口。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/contact-options` | workflow editor 按 keyword 分页搜索静态 recipient 候选，只返回 `id / type / name / avatar_url`。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/contact-options/batch` | workflow editor 按 contact ID 批量回显已保存 recipient，并使用同一最小投影。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/organization-candidates` | 搜索可投影为 Platform contact 的 Organization member candidate。 |
-| `POST` | `/console/api/workspace/current/human-input/v2/contacts/platform` | 批量将 Organization member 投影为当前 workspace 的 Platform contact。 |
-| `POST` | `/console/api/workspace/current/human-input/v2/contacts/external` | 创建 External contact。 |
-| `PATCH` | `/console/api/workspace/current/human-input/v2/contacts/external/<uuid:contact_id>` | 更新 External contact。 |
-| `POST` | `/console/api/workspace/current/human-input/v2/contacts/remove` | 批量 detach Platform contact 或删除 External contact。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/contacts` | owner/admin 分页浏览当前 workspace Contact，并按 workspace、platform 或 external 类型筛选。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/contacts/<uuid:contact_id>` | owner/admin 读取一个当前 workspace 中可用的完整 Contact projection。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/contacts/batch` | owner/admin 按 contact ID 批量读取 Contact summary；workflow editor 不使用该接口。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/contact-options` | workflow editor 按 keyword 分页搜索静态 recipient 候选，只返回 `id / type / name / avatar_url`。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/contact-options/batch` | workflow editor 按 contact ID 批量回显已保存 recipient，并使用同一最小投影。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/organization-candidates` | 搜索可投影为 Platform contact 的 Organization member candidate。 |
+| `POST` | `/console/api/workspaces/current/human-input/v2/contacts/platform` | 批量将 Organization member 投影为当前 workspace 的 Platform contact。 |
+| `POST` | `/console/api/workspaces/current/human-input/v2/contacts/external` | 创建 External contact。 |
+| `PATCH` | `/console/api/workspaces/current/human-input/v2/contacts/external/<uuid:contact_id>` | 更新 External contact。 |
+| `POST` | `/console/api/workspaces/current/human-input/v2/contacts/remove` | 批量 detach Platform contact 或删除 External contact。 |
 | `GET` | `/console/api/workspaces/current/human-input/im-integration` | 读取当前 Organization-level IM integration 摘要及 CAS revision。 |
 | `PUT` | `/console/api/workspaces/current/human-input/im-integration` | 创建 integration，或使用 `integration_id + config_version` CAS 更新当前配置。 |
 | `DELETE` | `/console/api/workspaces/current/human-input/im-integration` | 使用 `integration_id + config_version` CAS 解除当前 integration，并使后续读取回到 `Not configured`。 |
 | `POST` | `/console/api/workspaces/current/human-input/im-integration/test` | 测试 IM provider credentials、当前部署 event transport compatibility 与 permission；request 不得覆盖 transport mode。 |
-| `POST` | `/console/api/workspace/current/human-input/v2/im-sync-runs` | 手动触发 IM directory sync；Dify 创建新 run 或复用当前 single active run。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/im-sync-runs/latest` | 读取最近一次 IM sync run；UI 使用 `finished_at` 作为显式同步时间，不返回 `started_by`。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/im-sync-runs/latest/results` | 必须指定一个真实 result bucket，并使用 `page / limit` 分页读取最近一次 sync run 的 reconciliation result；不支持 All 或 cursor。 |
-| `GET` | `/console/api/workspace/current/human-input/v2/im-identities` | 搜索已同步的 IM identity。 |
-| `PUT` | `/console/api/workspace/current/human-input/v2/contacts/<uuid:contact_id>/im-override` | 设置或替换 workspace-scoped Contact IM override。 |
-| `DELETE` | `/console/api/workspace/current/human-input/v2/contacts/<uuid:contact_id>/im-override` | 清除 workspace-scoped Contact IM override 并恢复全局绑定。 |
-| `PUT` | `/console/api/workspace/current/human-input/v2/contacts/<uuid:contact_id>/im-bindings` | 将一个已同步 IM identity 绑定到 Contact。 |
-| `DELETE` | `/console/api/workspace/current/human-input/v2/contacts/<uuid:contact_id>/im-bindings` | 删除 Contact 的指定 IM binding。 |
-| `POST` | `/console/api/workspace/current/human-input/v2/node-data-migration` | 批量、无副作用地将 Human Input v1 node data 转换为 v2；整批 all-or-error，`whole_workspace: true` MUST 转换为恰好一个显式 `all_workspace_contacts` recipient marker，MUST NOT 展开为迁移时 workspace member / Contact snapshot 的静态 recipient 列表。 |
+| `POST` | `/console/api/workspaces/current/human-input/v2/im-sync-runs` | 手动触发 IM directory sync；Dify 创建新 run 或复用当前 single active run。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/im-sync-runs/latest` | 读取最近一次 IM sync run；UI 使用 `finished_at` 作为显式同步时间，不返回 `started_by`。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/im-sync-runs/latest/results` | 必须指定一个真实 result bucket，并使用 `page / limit` 分页读取最近一次 sync run 的 reconciliation result；不支持 All 或 cursor。 |
+| `GET` | `/console/api/workspaces/current/human-input/v2/im-identities` | 搜索已同步的 IM identity。 |
+| `PUT` | `/console/api/workspaces/current/human-input/v2/contacts/<uuid:contact_id>/im-override` | 设置或替换 workspace-scoped Contact IM override。 |
+| `DELETE` | `/console/api/workspaces/current/human-input/v2/contacts/<uuid:contact_id>/im-override` | 清除 workspace-scoped Contact IM override 并恢复全局绑定。 |
+| `PUT` | `/console/api/workspaces/current/human-input/v2/contacts/<uuid:contact_id>/im-bindings` | 将一个已同步 IM identity 绑定到 Contact。 |
+| `DELETE` | `/console/api/workspaces/current/human-input/v2/contacts/<uuid:contact_id>/im-bindings` | 删除 Contact 的指定 IM binding。 |
+| `POST` | `/console/api/workspaces/current/human-input/v2/node-data-migration` | 批量、无副作用地将 Human Input v1 node data 转换为 v2；整批 all-or-error，`whole_workspace: true` MUST 转换为恰好一个显式 `all_workspace_contacts` recipient marker，MUST NOT 展开为迁移时 workspace member / Contact snapshot 的静态 recipient 列表。 |
 | `GET` | `/console/api/workspaces/current/human-input/email-provider` | 读取 Email provider 配置及 credential configured 状态，不返回 secret 或 masked secret。 |
 | `PUT` | `/console/api/workspaces/current/human-input/email-provider` | 创建或更新 Email provider 配置，并支持显式 preserve existing secret。 |
 
