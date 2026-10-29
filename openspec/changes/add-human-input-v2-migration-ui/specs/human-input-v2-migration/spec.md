@@ -128,7 +128,7 @@ Migration output MAY contain recipient specifications that overlap after runtime
 
 ### Requirement: Email template and debug configuration shall map without reinterpretation
 
-For a supported enabled email method, the migration adapter result MUST preserve `subject` and `body` verbatim as `message_template`. Its Boolean `debug_mode` MUST map to the v2 debug object using the email channel only. A WebApp-only node MUST receive an empty message template and disabled debug mode.
+For a supported enabled email method, the migration adapter result MUST preserve `subject` and `body` verbatim as `message_template`. Its Boolean `debug_mode` MUST map to the v2 debug object using the email channel only. After all existing blockers pass, a node without an enabled email template MUST receive subject `Action required` and body `A request is waiting for your review. Please review the details and submit your decision to continue. Review and respond: {{#url#}}`. This default MUST NOT add an email recipient or enable debug mode.
 
 #### Scenario: Email content and debug mode are enabled
 
@@ -143,7 +143,12 @@ For a supported enabled email method, the migration adapter result MUST preserve
 #### Scenario: WebApp-only node gets complete v2 defaults
 
 - **WHEN** a legacy node has an enabled WebApp method and no enabled Email method
-- **THEN** the replacement MUST use an empty subject/body template and disabled debug mode while preserving the initiator recipient
+- **THEN** the replacement MUST use the default template above and disabled debug mode while preserving the initiator recipient
+
+#### Scenario: Default template does not hide invalid email configuration
+
+- **WHEN** a node also contains an invalid email configuration, conflicting email templates, or a configured-but-disabled method
+- **THEN** migration MUST retain the existing blockers and MUST NOT substitute the default template to allow conversion
 
 ### Requirement: Lossy or ambiguous legacy data shall block the entire migration
 
