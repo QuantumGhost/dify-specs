@@ -18,8 +18,8 @@
 #### Scenario: A workflow editor searches contact options
 
 - **WHEN** an authorized workflow editor searches current Contact options
-- **THEN** the application service MUST return only `id`, `type`, `name`, `avatar_url` and nullable `email`
-- **AND** it MUST NOT expose IM binding or Contact management metadata
+- **THEN** the endpoint MUST return only `id`, `type`, `name`, `avatar_url`, nullable `email` and `im_providers: list[IMProvider]`
+- **AND** it MUST NOT expose binding IDs, identity details, binding scope or Contact management metadata
 
 #### Scenario: Contact option pagination excludes unavailable matches
 
@@ -31,6 +31,17 @@
 
 - **WHEN** contact-options batch receives available、missing and unavailable `contact_ids`
 - **THEN** it MUST query only those IDs and return only the available Contacts in request order
+
+#### Scenario: Contact options display effective IM providers
+
+- **WHEN** search or batch resolution returns a Contact with an effective binding for the current Channel
+- **THEN** `im_providers` MUST contain the distinct binding providers using workspace override before default binding
+- **AND** a Channel connection failure MUST NOT remove the provider from this binding-presence projection
+
+#### Scenario: Contact options have no effective binding
+
+- **WHEN** search or batch resolution returns a Contact without a current Channel or effective binding, including an External Contact
+- **THEN** `im_providers` MUST be an empty list
 
 ### Requirement: Binding identity candidates MUST come from IMSyncService
 

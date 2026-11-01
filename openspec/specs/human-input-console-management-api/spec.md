@@ -6,7 +6,7 @@ TBD - created by archiving change human-input-v2-api-contracts. Update Purpose a
 ### Requirement: Workspace console MUST expose human-input contact directory APIs
 系统 MUST 在 `/console/api/workspaces/current/human-input/v2` 下提供 workspace Contact Directory API，覆盖 owner/admin 使用的 Contact list / detail / batch read、EE 下的 `Platform contact` candidate / add、`External contact` 的创建与编辑，以及一个统一的批量 remove API。列表接口省略 `group` 时 MUST 不按类型过滤；显式 group filter 只允许 `workspace / platform / external`，`all` MUST NOT 作为真实 group value。`External contact` 的 normalized email MAY 与当前 `workspace contact` 或 `Platform contact` 重叠，但同一 workspace 内两个 `External contact` MUST NOT 共享同一 normalized email。
 
-系统 MUST 另外提供 workflow editor 使用的 `contact-options` list / batch read model。该 read model MUST 使用 edit permission，MUST NOT 复用管理目录的完整响应 DTO，并 MUST 只返回 `id / type / name / avatar_url / email`。`email` MAY be null when the current Contact projection has no available Email. `id` MUST remain the Contact identity used by recipient DSL；`email` supports option presentation and same-email validation. 普通 member MUST NOT 通过该接口浏览 Contact directory。
+系统 MUST 另外提供 workflow editor 使用的 `contact-options` list / batch read model。该 read model MUST 使用 edit permission，MUST NOT 复用管理目录的完整响应 DTO，并 MUST 只返回 `id / type / name / avatar_url / email / im_providers`。`email` MAY be null when the current Contact projection has no available Email. `id` MUST remain the Contact identity used by recipient DSL；`email` supports option presentation and same-email validation. `im_providers: list[IMProvider]` MUST contain the distinct providers of the Contact's effective bindings for the current Channel, using workspace override before default binding. It MUST be empty when no current Channel or effective binding exists, including External Contacts. It MUST describe binding presence independently of Channel connection health. 普通 member MUST NOT 通过该接口浏览 Contact directory。
 
 #### Scenario: 省略 group 浏览全部可见 Contact
 - **WHEN** a workspace admin calls `GET /console/api/workspaces/current/human-input/v2/contacts` without `group`
@@ -30,11 +30,19 @@ TBD - created by archiving change human-input-v2-api-contracts. Update Purpose a
 
 #### Scenario: Workflow editor 搜索静态 recipient candidate
 - **WHEN** a workflow editor with edit permission calls `GET /console/api/workspaces/current/human-input/v2/contact-options?keyword=<string>`
-- **THEN** 系统 MUST 返回当前 workspace 中可选择 Contact 的分页结果，每个 item MUST 只包含 `id / type / name / avatar_url / email`，MUST NOT 返回 IM binding 或 management metadata
+- **THEN** 系统 MUST 返回当前 workspace 中可选择 Contact 的分页结果，每个 item MUST 只包含 `id / type / name / avatar_url / email / im_providers`，MUST NOT 返回 binding IDs、identity details、binding scope 或 management metadata
 
 #### Scenario: Workflow editor 批量回显已保存 recipient
 - **WHEN** a workflow editor calls `GET /console/api/workspaces/current/human-input/v2/contact-options/batch?contact_ids=<contact_id>`
 - **THEN** 系统 MUST 使用与 contact option search 相同的最小 projection 和 workspace-scoped resolution，返回仍然可用的 Contact，包括各 Contact 当前可用的 nullable `email`
+
+#### Scenario: Contact option displays its effective IM provider
+- **WHEN** contact-option search or batch resolution returns a Contact effectively bound to the current Feishu Channel
+- **THEN** the option MUST include `im_providers: ["feishu"]`, including when the Channel has a connection failure
+
+#### Scenario: Contact option has no effective IM binding
+- **WHEN** contact-option search or batch resolution returns an unbound Contact, an External Contact, or a Contact without a current Channel
+- **THEN** the option MUST include `im_providers: []`
 
 #### Scenario: Workflow editor 比较 same-email Contact candidates
 - **WHEN** contact-option search or batch resolution returns two Contacts with the same normalized email

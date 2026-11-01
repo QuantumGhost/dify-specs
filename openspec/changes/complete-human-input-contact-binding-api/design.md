@@ -31,7 +31,7 @@ List query 不物化 workspace-wide `ContactDirectorySnapshot`，也不先分页
 
 ### 2. Admin detail and editor options remain different abstractions
 
-Admin detail 可以返回 management projection；editor-safe options 只返回 `id/type/name/avatar_url/email`，不包含 IM binding、management metadata 或 canonical unavailable facts。复用一个宽 DTO 会把管理权限与 workflow editing 混合，因此拒绝。
+Admin detail 可以返回 management projection；editor-safe options 只返回 `id/type/name/avatar_url/email/im_providers`，不包含 binding IDs、identity details、binding scope、management metadata 或 canonical unavailable facts。`im_providers: list[IMProvider]` 由现有批量 effective binding 查询按 provider 去重生成，供联系人卡片展示平台图标。List 与 batch 使用相同投影；无当前 Channel、无绑定或 External Contact 返回空列表。该字段只表示绑定关系，不随 Channel 连接健康状态变化。复用一个宽 DTO 会把管理权限与 workflow editing 混合，因此拒绝。
 
 ### 3. Binding targets are synchronized identities, not free text
 

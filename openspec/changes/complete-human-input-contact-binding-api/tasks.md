@@ -2,13 +2,13 @@
 
 - [ ] 1.1 盘点当前 Workspace Contact detail/options stubs、lifecycle-owned availability predicates、synchronized identity search、`ContactIMBindingService`、binding/override routes，以及 controller 中的 repository access。
 - [ ] 1.2 添加失败的 Contact query tests，覆盖 `WORKSPACE`、`PLATFORM`、`EXTERNAL` resolution，`ABSENT`/unavailable Contact 的 omit/not-found，过滤后 `total` 与 `page / limit`，以及 read-time initialization/repair 不存在。
-- [ ] 1.3 添加失败的 DTO allow-list 与 authorization tests，区分 admin Contact detail 和 editor-safe contact options，禁止 binding/management metadata 进入 option results。
+- [ ] 1.3 添加失败的 DTO allow-list 与 authorization tests，区分 admin Contact detail 和 editor-safe contact options，允许 `im_providers`，禁止 binding details/management metadata 进入 option results。
 - [ ] 1.4 添加失败的 controller-delegation tests，覆盖 Organization binding create/delete、workspace override set/reset、stable error mapping，以及不存在直接 repository/lock/owner-predicate orchestration。
 
 ## 2. Current Contact Query Services
 
 - [ ] 2.1 实现 Contact detail 与 contact-options batch queries，只加载目标 Contact 或请求中的 `contact_ids` 及其 resolution facts，并省略 missing/unavailable Contacts。
-- [ ] 2.2 定义独立的 admin-safe detail 与 editor-safe option result types；options 仅允许 `id`、`type`、`name`、`avatar_url` 和 nullable `email`。
+- [ ] 2.2 定义独立的 admin-safe detail 与 editor-safe option result types；options 仅允许 `id`、`type`、`name`、`avatar_url`、nullable `email` 和 `im_providers: list[IMProvider]`。
 - [ ] 2.3 实现 contact-options list repository query，在 database query 中先应用 workspace availability 与 `keyword` filters，再计算 `total` 并执行 `page / limit`；禁止物化 workspace-wide `ContactDirectorySnapshot` 或分页后过滤。
 - [ ] 2.4 添加 query/policy parity tests，证明 repository filters 与 `ContactDirectoryPolicy.resolve_for_workspace` 对 `WORKSPACE / PLATFORM / EXTERNAL / ABSENT` 的判断一致。
 - [ ] 2.5 添加 architecture tests，证明 Contact query paths 不能调用 initialization、backfill、lifecycle repair、provider I/O 或 binding mutation。
@@ -33,3 +33,9 @@
 - [ ] 5.2 添加 cross-boundary tests，证明 Workspace controllers 与 future trusted transports 在 repository、lock 或 mutation ownership 之前收敛到 transport-neutral application services。
 - [ ] 5.3 运行 focused backend unit suites、controller/schema checks、formatter、type/lint checks 与 `openspec validate complete-human-input-contact-binding-api --strict`。
 - [ ] 5.4 审计最终 dependency graph，确认 lifecycle maintenance 拥有 Contact availability、sync runtime 拥有 synchronized identities，且 `ContactIMBindingService` 是唯一 binding/override mutation owner。
+
+## 6. Contact option IM provider projection
+
+- [x] 6.1 为 contact-options list/batch 添加 `im_providers: list[IMProvider]`，复用当前 Channel 的批量 effective bindings 并按 provider 去重。
+- [x] 6.2 验证 provider projection、空列表、DTO allow-list 和编辑权限，重新生成并检查 OpenAPI/TypeScript/Zod 契约。
+- [x] 6.3 同步 main spec 与相关 active delta 中的 editor-safe option 字段和绑定展示语义。
