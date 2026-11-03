@@ -116,6 +116,21 @@ TBD - created by archiving change human-input-v2-api-contracts. Update Purpose a
 - **WHEN** a trusted Service API caller submits a v2 form
 - **THEN** the request MUST contain `user`, `inputs`, and `action`, and MUST reject public-web-only `otp_code` or `challenge_token` fields
 
+### Requirement: Accepted HITL v2 files MUST be accessible to the initiating EndUser execution
+对于由 EndUser 发起的 Workflow 或 Chatflow 调用，系统 MUST 在 HITL v2 提交成功后恢复执行时，将当前租户、应用、运行中已提交表单的单文件和文件列表加入当前 `FileAccessScope`。系统 MUST 在复制节点执行和响应渲染的上下文之前恢复这些授权，并 MUST 在后续暂停恢复时保留先前已提交表单对应文件的访问能力。授权 MUST 仅依据已持久化的规范化文件提交值，MUST NOT 修改文件的持久化所有权或授予其他调用访问能力。
+
+#### Scenario: A Console approver uploads a file for an EndUser run
+- **WHEN** Console Account 提交的 HITL v2 文件属于该 EndUser 发起的运行
+- **THEN** 恢复后的后续节点和流式输出 MUST 能访问该文件，即使上传文件归属审批 Account
+
+#### Scenario: The execution pauses again after accepting files
+- **WHEN** 运行在后续 HITL 节点暂停后再次恢复
+- **THEN** 先前已成功提交的文件 MUST 继续可被该运行访问
+
+#### Scenario: A file has no accepted submission in the current run
+- **WHEN** 文件仅存在于其他租户、应用、运行、未成功提交的表单或原始非文件提交值中
+- **THEN** 系统 MUST NOT 根据该值向当前 `FileAccessScope` 添加授权
+
 ### Requirement: Runtime form contracts MUST keep v1 and v2 paths and submission logic independent
 本期 v1 runtime MUST 保留现有 `form/human_input` 下划线路径、完整 v1 node model、request DTO 与提交行为。v2 runtime MUST 使用 `form/human-input` 连字符路径和独立 controller / DTO / token owner lookup。v1 token MUST 只从 legacy recipient token 记录解析，v2 token MUST 只从 delivery endpoint token hash 解析。public v2 API MUST 使用 `form/human-input/v2/public`，并 MUST NOT 保留旧 `form/human-input/<form_token>` public route 的 alias。两套路径 MUST NOT 互为 alias，也 MUST NOT 接受另一版本的 form token；除 suspension 等不携带版本业务语义的基础设施外，v1 与 v2 提交逻辑 MUST 独立。
 
