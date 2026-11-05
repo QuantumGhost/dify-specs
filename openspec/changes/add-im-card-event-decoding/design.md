@@ -55,6 +55,8 @@ type IMCardEventDecodeResult = IMCardEvent | UnrecognizedIMEvent
 
 `provider_user_id` 必须使用 concrete adapter 已经为 Directory 和 Messaging 选择的 identity namespace。对 Feishu/Lark，这意味着 decoder 必须产出 contract 规定的 `union_id`；如果真实 callback evidence 不能支持该映射，则该 implementation 不能暴露完整的 paired Dynamic Card capability，而不能改用第二种 actor identifier 绕过约束。
 
+Microsoft Teams 的 Directory 使用 Graph 用户 GUID。Decoder 在 Pydantic 回调边界将 `from.aadObjectId` 解析为 UUID，并输出其规范字符串；不能使用 Bot Framework 的 `from.id`。缺失或非法的 `aadObjectId` 必须导致 decoding error，不能回退到另一种身份标识。2026-10-29 的真实 E2E 证明同一合法审批回调的 `from.id` 为 `29:` 标识，而 `from.aadObjectId` 与目录和投递目标一致。
+
 Alternative considered: 增加独立 actor ID 和 card context token types。Rejected because它们与已有 `ProviderUserId`、`CorrelationToken` 重复，并把同一个 IM identity/correlation concept 拆成两套模型。
 
 ### 2. Decode has one normal routing result and one explicit failure path

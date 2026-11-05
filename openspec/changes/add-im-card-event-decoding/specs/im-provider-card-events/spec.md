@@ -177,6 +177,16 @@ The Feishu and Lark adapters MUST each expose a card-event decoder implemented t
 ### Requirement: Microsoft Teams card decoding MUST separate metadata from inputs
 The Microsoft Teams decoder MUST recognize the applicable authenticated card invoke activity, read the activity actor as Microsoft Teams `ProviderUserId`, recover action and correlation metadata embedded by its sender, and return only the remaining submitted JSON values as `IMCardEvent.inputs`. Its sender and decoder MUST use one collision-safe metadata layout despite Microsoft Teams merging `Action.Submit.data` and card inputs into the callback `value` object.
 
+The decoder MUST parse `from.aadObjectId` as a UUID and return its canonical string as `ProviderUserId`, matching the Graph directory identity. It MUST NOT substitute the Bot Framework `from.id`. A recognized submission with a missing or invalid `from.aadObjectId` MUST raise `IMCardEventDecodingError`.
+
+#### Scenario: Teams callback contains different Bot Framework and directory identifiers
+- **WHEN** a recognized Teams callback contains `from.id = 29:...` and a valid UUID in `from.aadObjectId`
+- **THEN** the decoder MUST return the canonical `from.aadObjectId` UUID string as `ProviderUserId`
+
+#### Scenario: Teams callback lacks a valid directory object identifier
+- **WHEN** a recognized Teams callback omits `from.aadObjectId` or provides a value that cannot be parsed as a UUID
+- **THEN** the decoder MUST raise `IMCardEventDecodingError` even if `from.id` is present
+
 #### Scenario: Teams invoke contains action metadata and inputs
 - **WHEN** Microsoft Teams returns one Dify `Action.Submit` callback containing sender metadata and submitted inputs in its activity value
 - **THEN** the decoder MUST recover the action identifier and `CorrelationToken`
