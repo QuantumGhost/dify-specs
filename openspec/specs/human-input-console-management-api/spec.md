@@ -20,6 +20,10 @@ TBD - created by archiving change human-input-v2-api-contracts. Update Purpose a
 - **WHEN** a workspace admin calls `GET /console/api/workspaces/current/human-input/v2/contacts/<contact_id>` and the contact resolves as `WORKSPACE`, `PLATFORM`, or `EXTERNAL`
 - **THEN** 系统 MUST 返回该 Contact 的当前 workspace projection
 
+#### Scenario: Batch read returns a Contact summary
+- **WHEN** an authorized caller reads `/contacts/batch`
+- **THEN** each `HumanInputContactSummary` MUST include the resolved Contact's nullable `email`
+
 #### Scenario: 按 ID 读取 ABSENT Contact
 - **WHEN** a canonical contact exists but resolves as `ABSENT` in the current workspace, or the Contact has been hard-deleted
 - **THEN** `GET /console/api/workspaces/current/human-input/v2/contacts/<contact_id>` MUST return `404 Not Found`
@@ -266,6 +270,7 @@ Workspace Contact, contact-option, IM synchronization, identity, binding, overri
 
 - **WHEN** caller reads one latest-run result page
 - **THEN** each `IMSyncResultItem` MUST describe its reconciliation result without returning `HumanInputContactType`
+- **AND** each Contact summary MUST return the nullable `email` from its frozen Contact snapshot, without reading the current Contact profile
 
 #### Scenario: Removed sync result is returned
 
