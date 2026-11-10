@@ -82,9 +82,9 @@ Functional support in this change MUST target Community and Cloud. One pre-dispa
 - **AND** it MUST NOT resolve, read, write or reinterpret deployment-wide IM ownership, configuration, credentials or provider state
 - **AND** existing Enterprise IM behavior MUST remain unchanged
 
-### Requirement: Console v2 MUST own provider credential DTOs
+### Requirement: Human Input v2 controllers MUST share provider credential DTOs
 
-The Console `human_input_v2` controller package MUST own provider transport DTOs。`providers.py` MUST own complete credential inputs、`provider_updates.py` MUST own credential edit inputs and `provider_views.py` MUST own redacted credential responses。Old controller transport DTOs that repeat these fields MUST be deleted or migrated。The Email and IM application owners MAY keep internal domain credential types, but those types MUST NOT register or define a second HTTP contract。
+The `controllers.common.human_input_v2` package MUST own shared provider transport DTOs。`providers.py` MUST own complete credential inputs、`provider_updates.py` MUST own credential edit inputs and `provider_views.py` MUST own redacted credential responses。Console and Inner controllers MUST import these contracts directly from common; Inner and common MUST NOT import them from Console。Surface-specific routes、authentication and request/response envelopes MUST remain in their owning controller。Old controller transport DTOs that repeat these fields MUST be deleted or migrated rather than retained as forwarding or re-export modules。The Email and IM application owners MAY keep internal domain credential types, but those types MUST NOT register or define a second HTTP contract。
 
 #### Scenario: Provider credentials are submitted
 
