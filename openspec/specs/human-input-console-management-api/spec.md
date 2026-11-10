@@ -252,6 +252,7 @@ Workspace Contact, contact-option, IM synchronization, identity, binding, overri
 - **WHEN** workspace owner or admin calls `GET /console/api/workspaces/current/human-input/v2/im-sync-runs/latest`
 - **THEN** system MUST return run metadata, `finished_at` and aggregate counts for all five result buckets
 - **AND** the response MUST expose the captured Channel revision as `channel_id` and `channel_config_version`
+- **AND** create and latest responses MUST include `initiator_display_name` resolved from the initiating Account under `human-input-v2-im-control-plane-core`
 - **AND** it MUST NOT return `started_by`
 
 #### Scenario: Latest sync results are requested by bucket

@@ -48,6 +48,18 @@ Sync runs MUST persist the captured Channel revision as `channel_id` and `channe
 - **WHEN** a trigger arrives while the Channel has an active run
 - **THEN** the operation MUST return the existing active state without creating another run
 
+#### Scenario: Persist the sync initiator across editions
+- **WHEN** a manual trigger creates a new run
+- **THEN** Dify MUST persist either the initiating CE/SaaS Account ID in `started_by_account_id` or the authenticated EE administrator's upstream `sys_users.id` in `started_by_sys_user_id`
+- **AND** every run MUST have exactly one typed initiating identity; persistence and record mapping MUST reject records containing neither ID or both IDs
+- **AND** triggers that reuse an active run MUST preserve its original initiating identity
+- **AND** Dify MUST NOT persist a free-form initiator name
+
+#### Scenario: Resolve an initiating Account for display
+- **WHEN** CE/SaaS returns a sync run summary
+- **THEN** it MUST resolve only `started_by_account_id` to the current Account name and return an empty `initiator_display_name` when that Account is unavailable or the initiator is an EE sys_user
+- **AND** Dify MUST NOT query EE to resolve `started_by_sys_user_id`; EE owns that administrator-name lookup
+
 #### Scenario: Worker retries one run
 - **WHEN** reconciliation for the same `sync_run_id` is applied repeatedly
 - **THEN** the operation MUST be idempotent and MUST NOT duplicate current-state mutation or result facts

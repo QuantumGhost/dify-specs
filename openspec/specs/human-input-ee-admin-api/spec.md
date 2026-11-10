@@ -75,6 +75,7 @@ EE 管理后台 MUST 通过 Protobuf-defined Kratos HTTP 暴露 manual IM sync A
 #### Scenario: 手动触发 sync run
 - **WHEN** an EE admin calls `CreateIMSyncRun`
 - **THEN** EE MUST 调用 Dify manual-sync command；Dify MUST 创建新 run 或复用当前 single active run，确保 run 保存当前 `channel_id` 与 `config_version`，并返回 authoritative run metadata
+- **AND** EE MUST pass the authenticated administrator's `sys_users.id` through the trusted internal API; Dify MUST persist it as `started_by_sys_user_id`, leaving `started_by_account_id` null, under `human-input-v2-im-control-plane-core`
 
 #### Scenario: Sync run 对应的 Channel revision 已过期
 - **WHEN** an IM sync worker is ready to apply reconciliation results, but the current Channel ID or config version no longer matches the revision captured by the run
@@ -83,10 +84,12 @@ EE 管理后台 MUST 通过 Protobuf-defined Kratos HTTP 暴露 manual IM sync A
 #### Scenario: 查看最近一次 sync run summary
 - **WHEN** an EE admin calls `GetLatestIMSyncRun`
 - **THEN** 系统 MUST 返回最近一次 sync run 的 summary，包括 run metadata、作为 UI 显式同步时间的 `finished_at` 和五类 bucket 的 aggregate counts，并 MUST NOT 返回 `started_by`
+- **AND** EE MUST resolve `initiator_display_name` from the stored `started_by_sys_user_id` returned by Dify; Dify MUST NOT resolve EE administrator names
 
 #### Scenario: 按 bucket 分页查看最近一次 sync result
 - **WHEN** an EE admin calls `ListLatestIMSyncRunResults` with one result bucket plus `page` and `limit`
 - **THEN** 系统 MUST 只返回最近一次 sync run 中该 bucket 的结果条目，使用 `page / limit / total` 表达分页状态，MUST NOT 返回 cursor 或重复 run summary；需要 summary 的客户端 MUST 同时请求 `GetLatestIMSyncRun`
+- **AND** each `ContactSummary` MUST include `email` from the frozen Contact snapshot
 
 #### Scenario: Latest sync result 必须指定真实 bucket
 - **WHEN** an EE admin omits `result` or requests an `All` value from `ListLatestIMSyncRunResults`

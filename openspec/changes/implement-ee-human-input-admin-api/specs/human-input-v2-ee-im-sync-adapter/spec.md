@@ -40,6 +40,8 @@ EE `CreateIMSyncRun` MUST 只调用 Dify command endpoint并返回 Dify创建或
 
 EE MUST 通过 Dify internal API读取 latest run summary 与 latest result page。Result request MUST 指定 `added`、`not_matched`、`failed`、`removed` 或 `skipped` 中一个真实 bucket，并使用 `page / limit / total`；response MUST 使用 `finished_at`，省略 `started_by`，且 result page MUST 不重复 run summary。
 
+Create MUST pass the authenticated administrator's `sys_users.id` and leave the Dify Account ID absent. Dify MUST persist and return `started_by_sys_user_id` through the internal API; EE MUST resolve that ID to `initiator_display_name`. Dify MUST NOT persist an initiator name or call EE to resolve one. Identity exclusivity and active-run reuse MUST follow `human-input-v2-im-control-plane-core`. Result Contact summaries MUST map the frozen nullable `email`.
+
 #### Scenario: 管理员读取 latest result bucket
 - **WHEN** request包含有效 bucket、page 与 limit
 - **THEN** EE MUST 转发相同 query并仅做 Dify DTO到 Protobuf response的无损 mapping

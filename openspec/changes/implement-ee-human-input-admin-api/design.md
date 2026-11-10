@@ -130,6 +130,8 @@ Browser request不接受`actor_id`或`organization_id`。EE Kratos authenticatio
 
 EE-originated command在Dify中将`configured_by_account_id`、`started_by_account_id`、`bound_by_account_id`等Dify Account-specific字段留空；Dify workspace入口仍记录真实Dify Account。Dify只认证调用服务并记录service identity与correlation context，不建立EE User到Dify Account的映射。为保证不存在绕过EE audit的同权调用方，Human Input internal surface应使用EE-specific service credential、mTLS identity或等价的caller-scoped authentication，而不是依赖可被多个内部调用方共享的泛化actor assertion。
 
+Manual sync passes the authenticated administrator's `sys_users.id` to Dify as `started_by_sys_user_id`, mutually exclusive with `started_by_account_id`. Dify persists that identity without an initiator-name column. CE/SaaS resolves only the current Account name; EE resolves its own administrator name from the stored sys_user ID returned by Dify. Active-run reuse preserves the original identity. This business provenance does not map an EE sys_user to a Dify Account or replace EE audit attribution.
+
 EE部署的Organization由deployment语义确定，不允许client选择其他Organization。若未来支持multi-Organization，必须先显式扩展domain与internal contract，不能复用任意header偷偷引入scope。
 
 ### 7. Secret与error boundary使用allow-list mapping
