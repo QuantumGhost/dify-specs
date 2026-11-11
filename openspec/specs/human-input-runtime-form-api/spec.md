@@ -157,3 +157,24 @@ TBD - created by archiving change human-input-v2-api-contracts. Update Purpose a
 #### Scenario: v2 token 不能提交到 v1 route
 - **WHEN** a caller submits a v2 form token to an underscored v1 public or Service API route
 - **THEN** the v1 handler MUST reject the token without invoking v2 submission logic
+
+### Requirement: Workflow Tools MUST support Human Input v2 approvals
+A workflow containing Human Input v2 nodes MUST be usable as a Workflow Tool. Its forms MUST belong to the initiating application's persisted workflow run, while node execution records retain the source workflow identity. The caller MUST persist a resumable checkpoint before accepting submission. Live responses and reconnect snapshots MUST identify the caller's visible Tool node for each form, while the engine checkpoint retains the source node identity needed to resume execution.
+
+#### Scenario: A Workflow Tool requests approval
+- **WHEN** a Workflow Tool reaches a Human Input v2 node
+- **THEN** the caller MUST receive the frozen form presentation and any Current Initiator token, and MUST pause with a durable checkpoint
+- **AND** form ownership MUST use the caller's application and workflow run
+
+#### Scenario: Submission resumes the calling workflow
+- **WHEN** an authorized recipient submits the paused Tool's form
+- **THEN** the existing submission path MUST resume the calling workflow from its checkpoint and return the completed Tool's outputs
+- **AND** resumption MUST reuse the same form without repeating its initial notifications
+
+#### Scenario: Nested containers preserve approval presentation
+- **WHEN** a Human Input v2 node runs through multiple Workflow Tools, a loop inside a Workflow Tool, or a Workflow Tool inside a loop
+- **THEN** pause, reconnect, and form completion events MUST continue to identify the caller's visible Tool node
+
+#### Scenario: The execution context forbids human input
+- **WHEN** a caller disallows Human Input and references a Workflow Tool containing a Human Input node
+- **THEN** preloading MUST reject the execution before creating a workflow run or form
