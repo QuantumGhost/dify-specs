@@ -91,3 +91,10 @@ Shared failures MUST expose only distinctions defined by their capability. They 
 #### Scenario: Provider operation returns a shared failure
 - **WHEN** any shared capability returns a typed failure
 - **THEN** the caller MUST receive only the capability's stable failure facts and operator-safe diagnostics
+
+#### Scenario: DingTalk rejects a credential-test token request
+- **WHEN** DingTalk returns an OAuth token rejection during credential testing
+- **THEN** the adapter MUST log the token operation, HTTP status, provider error code and a valid UUID request ID when available
+- **AND** missing or malformed request IDs MUST NOT change failure classification
+- **AND** the log MUST NOT contain credentials, raw provider payloads, messages or exception tracebacks
+- **AND** the caller MUST continue to receive the existing authentication-rejected or unknown failure

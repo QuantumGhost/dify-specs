@@ -19,6 +19,13 @@ TBD - created by archiving change implement-human-input-im-channel-service. Upda
 - **THEN** Service MUST return the existing safe Provider failure
 - **AND** it MUST NOT create a write Session or call Repository mutation
 
+#### Scenario: DingTalk token rejection needs configuration guidance
+- **WHEN** DingTalk credential testing returns an `UNKNOWN` failure with HTTP status `500` and provider error code `unknownError`
+- **THEN** Service MUST return `connection_failure` with guidance to copy the Corp ID from the DingTalk Developer Console home page and verify the Client ID and Client Secret
+- **AND** the explanation MUST retain the HTTP status and provider error code without exposing the raw provider reason
+- **AND** it MUST NOT claim that a particular credential is certainly incorrect
+- **AND** failures from other providers or with other status/code combinations MUST retain their existing explanations
+
 #### Scenario: Candidate test succeeds
 - **WHEN** submitted credentials pass Provider checks
 - **THEN** Service MUST return credential-free success
