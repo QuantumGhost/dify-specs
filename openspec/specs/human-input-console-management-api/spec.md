@@ -142,7 +142,7 @@ On CE, an authorized workspace owner or administrator MUST be able to set a Cont
 - **THEN** 系统 MUST 按当前 node 的 `MessageTemplateConfig` 渲染测试消息，并向当前编辑者可达的对应 debug channel 发送测试消息
 
 ### Requirement: Workspace console MUST expose a side-effect-free batch Human Input node-data migration helper
-系统 MUST 在 `POST /console/api/workspaces/current/human-input/v2/node-data-migration` 提供 Human Input v1 → v2 batch node-data migration helper。该 endpoint MUST 只执行当前 tenant / Organization 范围内的 recipient resolution、批量节点转换与 blocker 校验，MUST NOT 更新 workflow DSL、draft、published workflow、graph state 或 migration history。legacy email recipients for current workspace members、Platform members 和 arbitrary email targets MUST become email-scoped `onetime_email` recipients unless another explicit migration rule applies. The helper MUST NOT auto-upgrade legacy email recipients into Contact recipients and MUST NOT auto-create `External contact` records. 调用方 MUST 在用户显式确认后提交待迁移的 legacy node data 集合；节点集合选择、原子 graph replacement、draft sync 与 rollback MUST 继续由调用方的 migration flow 负责。legacy `whole_workspace: true` MUST migrate to explicit `all_workspace_contacts` rather than a lossy static snapshot.
+系统 MUST 在 `POST /console/api/workspaces/current/human-input/v2/node-data-migration` 提供 Human Input v1 → v2 batch node-data migration helper。该 endpoint MUST 只执行当前 tenant / Organization 范围内的 recipient resolution、批量节点转换与 blocker 校验，MUST NOT 更新 workflow DSL、draft、published workflow、graph state 或 migration history。Legacy `MemberRecipient` references MUST resolve through the current workspace membership and the Account-backed Contact identity relationship into `contact` recipients with the actual `contact_id`; Account IDs MUST NOT be used as Contact IDs. Legacy `ExternalRecipient` addresses MUST remain email-scoped `onetime_email` recipients, including addresses matching Workspace, Platform, or External Contacts. The helper MUST NOT match recipients by email, provision missing Contact identities, or auto-create `External contact` records. 调用方 MUST 在用户显式确认后提交待迁移的 legacy node data 集合；节点集合选择、原子 graph replacement、draft sync 与 rollback MUST 继续由调用方的 migration flow 负责。legacy `whole_workspace: true` MUST migrate to explicit `all_workspace_contacts` rather than a lossy static snapshot.
 
 该 endpoint 的 request body MUST 使用 `nodes: [{ node_id, node_data }]`，成功响应 MUST 使用 `data: [{ node_id, node_data }]`，并保持现有的输入顺序保证。整批失败响应 MUST 使用 `blockers` 返回 node-scoped machine-readable blocker，不得混入任何部分成功的 v2 node data。该 transport 对齐只约束 HTTP / generated-client boundary，不改变本 requirement 定义的转换、tenant snapshot、all-or-error、幂等或 ownership 语义。
 
@@ -174,21 +174,31 @@ On CE, an authorized workspace owner or administrator MUST be able to set a Cont
 - **WHEN** the migration helper resolves legacy member or email recipients for a submitted batch
 - **THEN** 系统 MUST 为整批节点使用同一个稳定的、仅包含当前 tenant / Organization member and Contact state 的 snapshot，并 MUST NOT 搜索或引用跨 Organization contact
 
-#### Scenario: Legacy workspace member email migrates to one-time email
-- **WHEN** one submitted legacy node references a current workspace member email recipient
-- **THEN** the helper MUST return `onetime_email` recipient data for that target rather than a Contact recipient
+#### Scenario: Legacy workspace member reference migrates to Contact
+- **WHEN** one submitted legacy node contains a `MemberRecipient` identifying an active current workspace member through `reference_id` or the compatible legacy `user_id`
+- **THEN** the helper MUST return a `contact` recipient using that Account's existing Contact identity, independently of its current email
+
+#### Scenario: Legacy member cannot resolve to a current workspace Contact
+- **WHEN** a referenced Account is missing, disabled, no longer a member of the current workspace, or has no existing Contact identity
+- **THEN** the helper MUST return an `unresolved-member` blocker for that reference and fail the entire batch without returning partial node data
+- **AND** an EE Platform Contact entry or another Contact with the same email MUST NOT substitute for current workspace membership and the referenced Account's identity
+
+#### Scenario: Member Contact and same-email external address remain separate
+- **WHEN** a legacy node includes a member reference and an `ExternalRecipient` with that member's email
+- **THEN** the helper MUST preserve both the member's `contact` recipient and the normalized `onetime_email` recipient in source order
+- **AND** repeated member references MUST deduplicate by Contact identity, while repeated external addresses MUST deduplicate by normalized email
 
 #### Scenario: Legacy Platform member email migrates to one-time email
-- **WHEN** one submitted legacy node references another workspace or Platform member by email
+- **WHEN** one submitted legacy node contains an `ExternalRecipient` address belonging to another workspace or Platform member
 - **THEN** the helper MUST return `onetime_email` recipient data and MUST NOT auto-add a `Platform contact`
 
 #### Scenario: Legacy arbitrary email migrates to one-time email
-- **WHEN** one submitted legacy node contains another valid email recipient
+- **WHEN** one submitted legacy node contains another valid `ExternalRecipient` email address
 - **THEN** the helper MUST return `onetime_email` recipient data and MUST NOT auto-create an `External contact`
 
 #### Scenario: Legacy email matches an existing Contact
-- **WHEN** a submitted legacy email recipient shares a normalized email with any current Contact
-- **THEN** the helper MUST still preserve it as email-scoped migration output unless another explicit migration rule rewrites that exact source type
+- **WHEN** a submitted `ExternalRecipient` shares a normalized email with any current Contact
+- **THEN** the helper MUST preserve it as `onetime_email` and MUST NOT replace it with that Contact
 
 #### Scenario: Whole-workspace legacy recipient is migrated
 - **WHEN** any submitted legacy node has enabled email configuration with `whole_workspace: true`
