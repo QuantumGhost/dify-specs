@@ -292,6 +292,13 @@ Create、update and replacement MUST return HTTP `200` with a response whose `su
 - **WHEN** the provider rejects submitted credentials as invalid
 - **THEN** the API MUST classify the failure as `invalid_credentials`
 
+#### Scenario: Microsoft Teams Tenant ID does not identify an organization
+
+- **WHEN** Microsoft rejects the Tenant ID with `AADSTS90002` or `AADSTS900021`, including when Tenant ID and Client ID are swapped
+- **THEN** connection tests MUST return `200 invalid_credentials`, including rejections wrapped by the Azure Identity/MSAL discovery exception chain
+- **AND** save MUST return a configuration failure without persisting the rejected credentials
+- **AND** the safe description MUST direct the user to copy Azure Bot Configuration's App Tenant ID into Tenant ID and Microsoft App ID into Client ID
+
 #### Scenario: Expected provider operation fails
 
 - **WHEN** a classified provider failure is not invalid credentials
