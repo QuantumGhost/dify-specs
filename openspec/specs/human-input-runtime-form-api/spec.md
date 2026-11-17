@@ -3,6 +3,24 @@
 ## Purpose
 TBD - created by archiving change human-input-v2-api-contracts. Update Purpose after archive.
 ## Requirements
+### Requirement: Service API MUST expire forms when their workflow run stops
+Stopping an admitted paused workflow run MUST atomically invalidate its waiting Human Input v2 forms within the run's tenant and application. Both Service API form reads and submissions MUST reject those forms with the existing HTTP `412` and `human_input_form_expired` error code. Reads and submissions MUST also reject a waiting form snapshot when its owning run is already stopped. A submission MUST recheck stopped state under the workflow run lock before accepting inputs.
+
+#### Scenario: A paused run is stopped
+- **WHEN** an authorized caller stops a paused run containing waiting v2 forms
+- **THEN** those forms MUST become expired in the stop transaction, and subsequent Service API GET and POST requests MUST return `412 human_input_form_expired`
+- **AND** the system MUST NOT save a submission, record a successful submission audit, or enqueue workflow resume
+
+#### Scenario: A waiting form snapshot belongs to a stopped run
+- **WHEN** a Service API caller reads or submits a waiting form whose owning run is already stopped
+- **THEN** the system MUST reject it as `412 human_input_form_expired`, before validating its submitted fields
+- **AND** a rejected read MUST NOT record a form-view audit
+
+#### Scenario: Submission won before the stop
+- **WHEN** a form already has an accepted submission when its run stops
+- **THEN** stopping MUST preserve that submission and its terminal state
+- **AND** subsequent Service API reads and submissions MUST retain `412 human_input_form_submitted`
+
 ### Requirement: Public Email form page MUST be isolated from authenticated Contact approval
 系统 MUST 将 Email proof approver 与 Dify 登录 Contact 的审批页面、API namespace、controller、request DTO 和提交鉴权拆开。`/api/form/human-input/v2/public/<form_token>` MUST 只服务 `External contact`、one-time Email 和 resolved as task-scoped EmailAddress 的 Dynamic Email grant 等 Email proof approver；该 public Email form API MAY 直接基于有效 `form_token` 返回完整 form definition，但读取 MUST NOT 授予 submit authority。`workspace contact` 与 `Platform contact` MUST 使用独立的登录页面，并 MUST 通过 `/console/api/form/human-input/<form_token>` 提交，MUST NOT 通过 public Email endpoint 完成审批。
 

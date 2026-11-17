@@ -4,12 +4,12 @@
 TBD - created by archiving change unify-hitl-v2-resolved-form. Update Purpose after archive.
 ## Requirements
 ### Requirement: 渠道无关的 resolved form snapshot
-系统 MUST 使用不可变的 `ResolvedForm` 表达 HITL v2 表单的最终展示状态。该 snapshot MUST 包含可选 title、有序 `MarkdownText | Input` blocks、`user_actions` 和 `legacy_form_content`，并且 MUST 不包含 workflow selector、value-source discriminator、未解析的非输出 variable value 或 raw input mapping。通用 domain action 和 content 类型 MUST 分别命名为 `ResolvedFormAction` 和 `ResolvedFormContent`，不得暴露 `CardAction` 或 `CardContent` 等 IM/card 语义。生成的 `ResolvedForm` 代码 MUST 在 `legacy_form_content` 字段紧邻上方包含准确的 English comment：`# All non-output variables are resolved; {{#$output.<name>#}} slots remain.`
+系统 MUST 使用不可变的 `ResolvedForm` 表达 HITL v2 表单的最终展示状态。该 snapshot MUST 包含可选 title、有序 `MarkdownText | Input` blocks、`user_actions` 和 `legacy_form_content`，并且 MUST 不包含未解析的非输出 variable value 或 raw input mapping。Paragraph 默认值 MUST 保留创建时的 source type、selector 和原始 constant value，仅用于 Service API 响应兼容；运行逻辑 MUST 继续使用已解析的 resolved_default_value，不得根据这些来源信息重新读取变量。通用 domain action 和 content 类型 MUST 分别命名为 `ResolvedFormAction` 和 `ResolvedFormContent`，不得暴露 `CardAction` 或 `CardContent` 等 IM/card 语义。生成的 `ResolvedForm` 代码 MUST 在 `legacy_form_content` 字段紧邻上方包含准确的 English comment：`# All non-output variables are resolved; {{#$output.<name>#}} slots remain.`
 
 #### Scenario: Snapshot contains only resolved values
 - **WHEN** 系统从包含 variable-backed paragraph default 和 select options 的 HITL v2 node 创建表单
 - **THEN** `ResolvedForm` 包含最终 paragraph default 和具体 select option strings
-- **AND** snapshot 不包含原 selector 或 variable source metadata
+- **AND** paragraph snapshot 保留原始默认值来源元数据用于响应兼容，select options 继续只保留解析后的具体值
 
 #### Scenario: Input variants expose stable output names
 - **WHEN** compiler 为 paragraph、select、file 或 file-list slot 创建 input block
@@ -62,7 +62,7 @@ workflow form compiler MUST 在创建 form snapshot 时完成普通 Markdown var
 
 #### Scenario: Variable-backed paragraph default is resolved
 - **WHEN** paragraph input default 引用一个可转换为文本的 runtime variable
-- **THEN** `ParagraphInput.default_value` 保存最终字符串
+- **THEN** `ParagraphInput.resolved_default_value` 保存最终字符串
 
 #### Scenario: Variable-backed select options are resolved
 - **WHEN** select option source 引用一个有效的 runtime string list
@@ -122,3 +122,31 @@ IM dynamic-card contracts MUST 接收 `ResolvedForm`，adapters MUST 按 blocks 
 #### Scenario: Provider does not support file inputs
 - **WHEN** form 包含 provider 不支持的 `FileInput` 或 `FileListInput`
 - **THEN** whole-form assessment 返回 unrepresentable
+
+### Requirement: Runtime responses MUST project snapshots through transport DTOs
+Service API MUST 保留 v1 GET 表单默认值的 JSON 结构：variable default 返回原 type、selector 和 value；未配置默认值返回 null；resolved_default_values 仅包含可解析的 variable defaults。对外 selector 字段 MUST 标记为 deprecated。Console 和 Web App 的 resolved_form 响应 MUST 使用独立 DTO 保留既有字段，不得直接序列化内部持久化模型新增的兼容元数据。内部 paragraph/select 的解析值使用 resolved_default_value，paragraph 来源配置使用 default_config；对外 resolved_form DTO MUST 保留既有 default_value 字段名。内部 ResolvedForm 及其子模型 MUST 忽略未声明字段，MUST NOT 使用 extra="forbid"。本功能尚未上线，系统 MUST NOT 增加历史 snapshot 回补或读取时重建来源元数据的逻辑。
+
+#### Scenario: A variable default is fetched through the Service API
+- **WHEN** 创建时 paragraph default 为 variable，selector 为 seed.note，并解析为字符串 Draft
+- **THEN** GET MUST 返回原 variable default 配置及 resolved_default_values 中的 Draft
+- **AND** JSON Schema 中 default.selector MUST 声明 deprecated
+
+#### Scenario: A constant or absent default is fetched
+- **WHEN** paragraph 使用 constant default 或没有配置 default
+- **THEN** GET MUST 分别返回原 constant 配置或 null，并 MUST NOT 把这两个字段加入 resolved_default_values
+
+#### Scenario: Storage gains compatibility metadata
+- **WHEN** Console 或 Web App 返回包含 paragraph 来源元数据的冻结表单
+- **THEN** 原有 resolved_form 响应结构 MUST 保持不变，来源元数据 MUST NOT 自动出现在响应中
+
+### Requirement: Compatibility conversion MUST preserve paragraph text and error-code semantics
+接受的 JSON paragraph 值 MUST 保留原始输出；填充后的段落文本 MUST 使用 v1 的字符串表示，包括对象和列表的 Python repr。Service API MUST 保持既有 HTTP status 和 error code 映射。错误描述只用于诊断，不要求与 v1 逐字一致，也不属于兼容性 contract。
+
+#### Scenario: A JSON object is submitted as a paragraph
+- **WHEN** 已接受 paragraph 值为 {"detail": "approved", "count": 2}
+- **THEN** workflow 原始输出 MUST 保持该对象，rendered content MUST 包含 {'detail': 'approved', 'count': 2}
+
+#### Scenario: A rejected submission is corrected
+- **WHEN** Service API 因缺字段、非法 action/select 或文件校验拒绝请求
+- **THEN** HTTP status/code MUST 与 v1 对应错误一致
+- **AND** 修正后的同 token 提交 MUST 仍可成功，且成功后 MUST 继续保持单次提交限制
