@@ -102,11 +102,11 @@ Shared failures MUST expose only distinctions defined by their capability. They 
 #### Scenario: Provider request ID reaches the API
 - **WHEN** the provider supplies a request ID for a rejected credential test
 - **THEN** the adapter MUST preserve it in `CredentialTestFailure.provider_request_id`
-- **AND** the API MUST expose it in `details.provider_request_id` together with `details.provider_error_code` when available
+- **AND** the API MUST expose it as `provider_request_id` together with `provider_error_code` when available
 
 #### Scenario: Provider request ID is absent
 - **WHEN** the provider does not supply a request ID
-- **THEN** `CredentialTestFailure.provider_request_id` MUST be `None` and the API MUST omit `details.provider_request_id`
+- **THEN** `CredentialTestFailure.provider_request_id` MUST be `None` and the API MUST return `provider_request_id: null`
 - **AND** no layer MUST generate a replacement ID or substitute another correlation identifier
 
 #### Scenario: DingTalk rejects a credential-test request
