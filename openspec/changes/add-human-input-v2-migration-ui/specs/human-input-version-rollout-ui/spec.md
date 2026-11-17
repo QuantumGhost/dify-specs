@@ -1,5 +1,19 @@
 ## ADDED Requirements
 
+### Requirement: HITL IM entry points shall be enabled by default
+
+The frontend MUST default `NEXT_PUBLIC_ENABLE_HITL_IM` to `true` when the setting is unset or empty. Container startup and browser runtime configuration MUST preserve this default. An explicit `false` or `0` MUST disable the entry points and preserve saved data and legacy V1 availability.
+
+#### Scenario: Deployment omits the release flag
+
+- **WHEN** Web starts without a non-empty `NEXT_PUBLIC_ENABLE_HITL_IM` setting
+- **THEN** HITL IM, Contacts, V2 editing, migration, and approval entry points MUST be enabled under their existing permission rules
+
+#### Scenario: Deployment explicitly disables the release flag
+
+- **WHEN** Web starts with `NEXT_PUBLIC_ENABLE_HITL_IM=false` or `0`
+- **THEN** V2 entry points MUST be disabled without converting saved nodes, channels, or credentials
+
 ### Requirement: Human Input creation shall expose only the v2-backed candidate
 
 The block catalog MUST expose one user-facing candidate named Human Input, and selecting it MUST create persisted `type: human-input`, `version: '2'` data. The legacy Human Input default MUST remain available for rendering imported drafts but MUST NOT be exposed as a creation choice.
