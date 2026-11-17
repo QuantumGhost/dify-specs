@@ -92,6 +92,23 @@ Shared failures MUST expose only distinctions defined by their capability. They 
 - **WHEN** any shared capability returns a typed failure
 - **THEN** the caller MUST receive only the capability's stable failure facts and operator-safe diagnostics
 
+#### Scenario: Microsoft rejects credential discovery
+- **WHEN** Microsoft rejects the credential test's OAuth discovery or token request
+- **THEN** the Teams adapter MUST read the structured provider response rather than parse exception descriptions
+- **AND** it MUST raise `CredentialTestRejectedError` carrying its safe guidance, provider error code and available HTTP status
+- **AND** the Channel Service MUST propagate that exception unchanged to the API boundary
+- **AND** the API MUST preserve the diagnostics in its test and mutation failure responses
+
+#### Scenario: Provider request ID reaches the API
+- **WHEN** the provider supplies a request ID for a rejected credential test
+- **THEN** the adapter MUST preserve it in `CredentialTestFailure.provider_request_id`
+- **AND** the API MUST expose it in `details.provider_request_id` together with `details.provider_error_code` when available
+
+#### Scenario: Provider request ID is absent
+- **WHEN** the provider does not supply a request ID
+- **THEN** `CredentialTestFailure.provider_request_id` MUST be `None` and the API MUST omit `details.provider_request_id`
+- **AND** no layer MUST generate a replacement ID or substitute another correlation identifier
+
 #### Scenario: DingTalk rejects a credential-test request
 - **WHEN** DingTalk rejects a token, authorization-scope or root-directory request during credential testing
 - **THEN** the adapter MUST return the upstream error code and request ID when available in the typed failure
