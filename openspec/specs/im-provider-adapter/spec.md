@@ -97,7 +97,8 @@ Shared failures MUST expose only distinctions defined by their capability. They 
 - **THEN** the adapter MUST return the upstream error code and request ID when available in the typed failure
 - **AND** numeric `errcode` values MUST be preserved instead of an SDK's generic wrapper code
 - **AND** request IDs MUST be treated as opaque strings and retain their original spelling and case
+- **AND** the adapter MUST NOT impose local character-pattern or length restrictions on provider request IDs
 - **AND** token rejection logs MUST include the operation, HTTP status, provider error code and request ID
-- **AND** missing or malformed request IDs MUST NOT change failure classification
+- **AND** missing request IDs MUST NOT change failure classification
 - **AND** the log MUST NOT contain credentials, raw provider payloads, messages or exception tracebacks
 - **AND** the caller MUST continue to receive the existing authentication-rejected or unknown failure
