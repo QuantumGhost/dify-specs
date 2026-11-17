@@ -62,6 +62,17 @@ Dynamic Card Messaging MUST expose side-effect-free `assess(intent)`. `Normalize
 - **WHEN** assessment for an initial Dynamic Card Provider receives a complete intent containing `FILE` or `FILE_LIST`
 - **THEN** it MUST return not representable without filtering out that input
 
+#### Scenario: Slack Markdown text reaches the cumulative payload limit
+- **WHEN** all Markdown blocks in one Slack card payload contain exactly 12,000 characters in total and the form satisfies every other Slack representation constraint
+- **THEN** assessment MUST return representable without Provider I/O, including when input controls separate the Markdown blocks
+- **AND** header text, input labels, input defaults and action text MUST NOT count toward that Markdown total
+
+#### Scenario: Slack Markdown text exceeds the cumulative payload limit
+- **WHEN** all Markdown blocks in one Slack card payload contain more than 12,000 characters in total, including 12,001 characters or two blocks of 7,000 characters each
+- **THEN** assessment MUST return not representable without Provider I/O even when each individual block is within the limit
+- **AND** Human Input delivery MUST choose an IM link before sending and MUST NOT send the oversized card
+- **AND** the link MUST retain the original form and recipient association and use the recipient's existing web approval authentication
+
 ### Requirement: Dynamic Card Messaging MUST send one complete card
 Dynamic Card Messaging MUST expose `send_card(provider_user_id, intent, correlation_token)`. The operation MUST receive the same complete `NormalizedCardIntent` used by assessment. The caller MUST NOT invoke `send_card` when `assess(intent)` returns `representable=False`. If an unrepresentable intent is nevertheless passed, `send_card` MUST raise `DynamicCardMessagingError` before creating a Provider message. `CorrelationToken` MUST be a caller-issued opaque string used only for later interaction correlation. Every interaction callback originating from the card MUST expose the supplied token unchanged, and the adapter MUST NOT interpret it. A card send failure MUST NOT implicitly send a text fallback or create a partial card.
 
