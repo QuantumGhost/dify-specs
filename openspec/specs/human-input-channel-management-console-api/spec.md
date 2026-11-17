@@ -281,6 +281,14 @@ Create、update and replacement MUST return HTTP `200` with a response whose `su
 
 `POST /channels/email/test` and `POST /channels/im/test` MUST use only the submitted complete credentials and MUST NOT read or mutate configured Channel state。Success MUST return HTTP `200` with `ChannelTestResponse`。Expected failures MUST use only `invalid_credentials` or `connection_failure`；an unexpected failure MUST return HTTP `500` without provider or internal error information。
 
+#### Scenario: Expected provider failure includes structured diagnostics
+
+- **WHEN** a candidate test, saved-configuration test or configuration mutation returns an expected provider failure
+- **THEN** the API response MUST expose `provider_error_code` and `provider_request_id` as structured nullable fields
+- **AND** the fields MUST contain only the original provider-supplied values, preserving the request ID's spelling and case
+- **AND** absent diagnostics and successful test responses MUST use `null` for these fields
+- **AND** the API MUST NOT generate a provider request ID or substitute a Dify request ID or trace ID
+
 #### Scenario: Candidate test succeeds
 
 - **WHEN** submitted credentials pass provider validation
