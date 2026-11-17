@@ -11,7 +11,7 @@ The Console API MUST expose the canonical prefix `/console/api/workspaces/curren
 #### Scenario: Configured Channels are listed
 
 - **WHEN** an authorized caller requests `GET /console/api/workspaces/current/human-input/v2/channels`
-- **THEN** the response MUST contain every configured Email and IM Channel
+- **THEN** the response MUST contain every configured Email and IM Channel supported by the deployment
 - **AND** an unconfigured provider MUST NOT appear as a `not_configured` Channel
 
 #### Scenario: Available providers are listed
@@ -65,9 +65,32 @@ Every Community and Cloud Channels route MUST require an authenticated, initiali
 - **THEN** the API MUST dispatch the operation directly to the Email Management owner
 - **AND** provider I/O MUST remain behind the Resend adapter
 
+### Requirement: Workspace Channel admission MUST match the deployment's mail configuration policy
+
+The Console API MUST use the same tenant-scoped Email configuration capability as Human Input delivery. Community MUST use global mail and MUST NOT admit tenant Email Channel management. Cloud MUST retain tenant Email Channel management. Global mail availability MUST NOT enable tenant Email Channel management.
+
+#### Scenario: Community requests an Email management operation
+
+- **WHEN** any request targets a canonical Email Channel create, item or connection-test path on Community
+- **THEN** the API MUST return HTTP `501` before authentication decorators, DTO validation or Email owner dispatch
+- **AND** it MUST NOT read, write, decrypt or test tenant Email configuration
+
+#### Scenario: Community discovers supported Channels
+
+- **WHEN** an authorized Community caller requests `/channel-providers` or `/channels`
+- **THEN** `email_providers` MUST be empty and the configured collection MUST omit Email Channels
+- **AND** the controller MUST NOT access the Email Management owner
+- **AND** Workspace IM discovery MUST remain available
+
+#### Scenario: Global mail is available or unavailable on Community
+
+- **WHEN** Community global mail configuration changes
+- **THEN** Email Channel management admission and discovery MUST remain disabled
+- **AND** Human Input Email delivery MUST retain its existing global-client selection and unavailable-client behavior
+
 ### Requirement: Community and Cloud support MUST NOT alter Enterprise IM behavior
 
-Functional support in this change MUST target Community and Cloud. One pre-dispatch edition gate MUST return HTTP `501` for the canonical Channels paths on Enterprise. The Console v2 transport MUST NOT resolve or access Enterprise deployment-wide IM state.
+Workspace IM support in this change MUST target Community and Cloud; tenant Email Channel support MUST target Cloud. One pre-dispatch edition gate MUST return HTTP `501` for the canonical Channels paths on Enterprise. The Console v2 transport MUST NOT resolve or access Enterprise deployment-wide IM state.
 
 #### Scenario: Workspace management context is built
 

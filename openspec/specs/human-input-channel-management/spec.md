@@ -5,11 +5,11 @@
 Defines the Console transport boundary for Human Input Email and IM channels while preserving each application owner's lifecycle and persistence invariants.
 ## Requirements
 ### Requirement: Console collections MUST aggregate independent Email and IM owners
-The Console controller MUST call the Email Management owner and `IMChannelService` for listing、reading、testing、creating、updating、replacing and deleting Channels。The unified HTTP collection and Provider catalog MUST remain transport-level aggregation and MUST NOT introduce a cross-kind application service、service bundle or persistence owner。Controllers MUST NOT read owner persistence directly。
+The Console controller MUST call the supported Email Management owner and `IMChannelService` for listing、reading、testing、creating、updating、replacing and deleting Channels。Supported kinds and their admission MUST follow `human-input-channel-management-console-api`。The unified HTTP collection and Provider catalog MUST remain transport-level aggregation and MUST NOT introduce a cross-kind application service、service bundle or persistence owner。Controllers MUST NOT read owner persistence directly。
 
 #### Scenario: Configured Channels are listed
 - **WHEN** an authenticated caller requests configured Channels
-- **THEN** controller MUST aggregate current Email and IM Channel views
+- **THEN** controller MUST aggregate current Channel views only for kinds supported by the deployment
 - **AND** it MUST NOT construct a not-configured Channel for each Provider
 
 #### Scenario: Available providers are listed
