@@ -6,7 +6,7 @@ Defines the authenticated Workspace Console v2 transport that projects independe
 ## Requirements
 ### Requirement: The Console API MUST expose one canonical Channels resource
 
-The Console API MUST expose the canonical prefix `/console/api/workspaces/current/human-input/v2`。It MUST expose one configured Channel collection at `GET /channels` and one available-provider catalog at `GET /channel-providers`。Email and IM create、test and ID-addressed item routes MUST remain separated by kind。Each kind MUST expose `POST /channels/<kind>/<channel_id>/test` for testing edits against saved credentials。Every route MUST require a workspace owner or administrator。
+The Console API MUST expose the canonical prefix `/console/api/workspaces/current/human-input/v2`。It MUST expose one configured Channel collection at `GET /channels` and one available-provider catalog at `GET /channel-providers`。Email and IM create、test and ID-addressed item routes MUST remain separated by kind。Each kind MUST expose `POST /channels/<kind>/<channel_id>/test` for testing edits against saved credentials。Every management route MUST require a workspace owner or administrator。
 
 #### Scenario: Configured Channels are listed
 
@@ -41,7 +41,7 @@ The Console API MUST expose the canonical prefix `/console/api/workspaces/curren
 
 ### Requirement: Channel routes MUST be restricted to trusted Workspace administrators
 
-Every Community and Cloud Channels route MUST require an authenticated, initialized Workspace Owner or Admin. The management scope and actor facts MUST come from server state.
+Every Community and Cloud Channel management route MUST require an authenticated, initialized Workspace Owner or Admin. The management scope and actor facts MUST come from server state.
 
 #### Scenario: Owner manages a channel
 
@@ -50,7 +50,7 @@ Every Community and Cloud Channels route MUST require an authenticated, initiali
 
 #### Scenario: Non-admin member accesses Channels
 
-- **WHEN** a member who is neither Owner nor Admin calls a Channels route
+- **WHEN** a member who is neither Owner nor Admin calls a Channel management route
 - **THEN** the API MUST reject the request before application-owner or provider work
 
 #### Scenario: Payload attempts to select ownership
@@ -434,3 +434,36 @@ The application owner MUST merge credential edits before protection。IM update 
 - **WHEN** an administrator saves a current Email or IM Channel with retained fields and submitted overrides
 - **THEN** the owner MUST combine saved values and submitted overrides before encrypting one complete credential document
 - **AND** the repository CAS write MUST receive one `ChannelEncryptedCredentials` envelope
+
+### Requirement: Authenticated Workspace members MUST discover test channels once per Workspace
+
+`GET /console/api/workspaces/current/human-input/v2/test-channels` MUST require an authenticated, initialized Dify Account and resolve the Workspace from that Account's active Workspace. The response MUST contain only configured `DebugChannel` identifiers. The endpoint MUST NOT require an App identifier or an App-specific permission. Channel management authorization MUST remain Owner/Admin-only independently of RBAC. Sending a message-template test MUST retain its existing App-specific authorization.
+
+#### Scenario: Workflow and Chatflow editors share the Workspace query
+
+- **WHEN** authenticated members open Debug Mode or message-template testing in different Apps of the same Workspace
+- **THEN** both surfaces MUST share the Workspace query and cached result instead of querying once per App or node
+- **AND** channel configuration changes MUST invalidate that cached result
+- **AND** switching Workspaces MUST discard the previous Workspace's cached result
+- **AND** discovery MUST NOT return credentials, Channel IDs, Webhook URLs, configuration versions, or management diagnostics
+- **AND** discovery MUST NOT decrypt credentials, contact a provider, or modify configuration
+
+#### Scenario: Anonymous caller requests test channels
+
+- **WHEN** a caller has no authenticated Dify Account
+- **THEN** discovery MUST return HTTP `401` before reading channel configuration
+
+#### Scenario: A caller attempts to choose another Workspace
+
+- **WHEN** a request supplies an App or Workspace identifier as additional input
+- **THEN** discovery MUST use only the active Workspace resolved from the authenticated Dify Account
+- **AND** it MUST NOT expose the supplied Workspace's channels
+
+#### Scenario: Deployment capabilities constrain discovery
+
+- **WHEN** an authorized caller discovers test channels on Community
+- **THEN** the projection MUST include only configured Workspace IM channels and MUST NOT read tenant Email configuration
+- **WHEN** the deployment is Cloud
+- **THEN** configured tenant Email MAY also appear
+- **WHEN** the deployment is Enterprise
+- **THEN** this Workspace projection MUST return HTTP `501` after authentication and MUST NOT read deployment-wide IM configuration
