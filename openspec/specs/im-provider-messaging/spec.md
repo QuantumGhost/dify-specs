@@ -70,6 +70,7 @@ Dynamic Card Messaging MUST expose side-effect-free `assess(intent)`. `Normalize
 #### Scenario: Slack Markdown text exceeds the cumulative payload limit
 - **WHEN** all Markdown blocks in one Slack card payload contain more than 12,000 characters in total, including 12,001 characters or two blocks of 7,000 characters each
 - **THEN** assessment MUST return not representable without Provider I/O even when each individual block is within the limit
+- **AND** the diagnostic reason MUST include the complete payload's Markdown character count and the 12,000-character limit
 - **AND** Human Input delivery MUST choose an IM link before sending and MUST NOT send the oversized card
 - **AND** the link MUST retain the original form and recipient association and use the recipient's existing web approval authentication
 
